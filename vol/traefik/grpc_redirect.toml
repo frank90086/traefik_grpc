@@ -1,0 +1,15 @@
+[http.routers.grpc_redirect]
+  entryPoints = ["web"]
+  rule = "PathPrefix(`/grpc`)"
+  middlewares = ["grpc_replacePathRegex"]
+  service = "grpc_loadBalancer"
+
+[http.middlewares]
+  [http.middlewares.grpc_replacePathRegex.replacePathRegex]
+    regex = "^/grpc/(.*)"
+    replacement = "/$1"
+
+[http.services]
+  [http.services.grpc_loadBalancer.loadBalancer]
+    [[http.services.grpc_loadBalancer.loadBalancer.servers]]
+      url = "http://traefik:5001"

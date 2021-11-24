@@ -1,0 +1,86 @@
+version: "3.7"
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    ports:
+      - 80:80
+      - 443:443
+      - 5001:5001
+      - 1883:1883 # MQTT TCP
+      # - 3000:3000 # Grafana
+      - 3306:3306 # MySQL
+      - 13306:3306 # MySQL-Slave
+      - 5432:5432 # PostgreSQL
+      - 15432:5432 # PostgreSQL-Slave
+      - 5601:5601 # Kibana
+      - 6379:6379 # Redis
+      - 8080:8080 #
+      - 8083:8083 # EMQX WS
+      - 8084:8084 # EMQX WSS
+      - 8086:8086 # InfluxDb
+      - 8200:8200 # APM
+      - 8883:8883 # MQTT TCP SSL
+      - 9090:9090 # Prometheus
+      - 9100:9100 # Node Exporter
+      - 9200:9200 # Elasticsearch
+      - 9300:9300 # Elasticsearch Transport
+      # - 18083:18083 # EMQX Admin
+    volumes:
+      - ./traefik.toml:/etc/traefik/traefik.toml
+      - ./vol/traefik:/etc/traefik/conf
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+  web-api:
+    container_name: web-api
+    build:
+      context: ./
+      args:
+        PROJECT: Hello.Grpc.WebAPI
+        OPTIONAL_PKG: curl inetutils-ping
+    image: wep-api:latest
+    volumes:
+      - ./vol/webapi/log:/app/logs
+    # ports:
+    #   - 5200:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webapi.entrypoints=web"
+      - "traefik.http.routers.webapi.rule=Host(`traefik.io`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.webapi.service=webapi_loadBalancer"
+      - "traefik.http.services.webapi_loadBalancer.loadbalancer.server.port=80"
+      - "traefik.http.services.webapi_loadBalancer.loadbalancer.server.scheme=http"
+      - "traefik.http.middlewares.webapi_stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.webapi.middlewares=webapi_stripprefix@docker"
+  grpc:
+    container_name: grpc
+    build:
+      context: ./
+      args:
+        PROJECT: Hello.Grpc.Server
+    image: grpc:latest
+    volumes:
+      - ./vol/grpc/log:/app/logs
+    # ports:
+    #   - 5100:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grpc.entrypoints=dev"
+      - "traefik.http.routers.grpc.rule=(Host(`traefik`) || Host(`traefik.io`))"
+      # - "traefik.http.routers.grpc.service=grpc@docker"
+      - "traefik.http.services.grpc.loadbalancer.server.port=5001"
+      - "traefik.http.services.grpc.loadbalancer.server.scheme=h2c"
+      # - "traefik.http.middlewares.grpc_redirectregex.redirectregex.regex=^https?://traefik(?:.io)?/grpc/(.*)"
+      # - "traefik.http.middlewares.grpc_redirectregex.redirectregex.replacement=http://traefik/$${1}"
+      # - "traefik.http.middlewares.grpc_stripprefix.stripprefix.prefixes=/grpc"
+      # - "traefik.http.routers.grpc.middlewares=grpc_redirectregex@docker"
+    environment:
+      - ASPNETCORE_URLS=localhost:5001
+# networks:
+#   default:
+#     external:
+#       name: traefik
+networks:
+  default:
+    driver: bridge
+    name: traefik

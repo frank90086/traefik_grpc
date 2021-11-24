@@ -1,0 +1,207 @@
+################################################################
+#
+# Configuration sample for Traefik v2.
+#
+# For Traefik v1: https://github.com/traefik/traefik/blob/v1.7/traefik.sample.toml
+#
+################################################################
+
+################################################################
+# Global configuration
+################################################################
+[global]
+  checkNewVersion = true
+  sendAnonymousUsage = false
+
+################################################################
+# Entrypoints configuration
+################################################################
+
+# Entrypoints definition
+#
+# Optional
+# Default:
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+  [entryPoints.websecure]
+    address = ":443"
+  [entryPoints.dev]
+    address = ":5001"
+  [entryPoints.kibana]
+    address = ":5601"   # Kibana
+  [entryPoints.apm]
+    address = ":8200"   # APM
+  [entryPoints.elasticsearch]
+    address = ":9200"   # Elasticsearch
+  [entryPoints.elasticsearch-transport]
+    address = ":9300"   # Elasticsearch Transport
+  [entryPoints.grafana]
+    address = ":3000"   # Grafana
+  [entryPoints.prometheus]
+    address = ":9090"   # Prometheus
+  [entryPoints.node-exporter]
+    address = ":9100"   # Node Exporter
+  [entryPoints.redis]
+    address = ":6379"   # Redis
+  [entryPoints.postgresql]
+    address = ":5432"   # PostgreSQL
+  [entryPoints.postgresql-slave]
+    address = ":15432"   # PostgreSQL-Slave
+  [entryPoints.mysql]
+    address = ":3306"   # MySQL
+  [entryPoints.mysql-slave]
+    address = ":13306"   # MySQL
+  [entryPoints.kafka]
+    address = ":9092"   # Kafka
+  [entryPoints.kafka-controller]
+    address = ":9093"   # Kafka Controller
+  [entryPoints.mqtt]
+    address = ":1883"   # MQTT TCP
+  [entryPoints.mqtt-tls]
+    address = ":8883"   # MQTT TCP SSL
+  [entryPoints.rabbit-mq]
+    address = ":4369"   # RabbitMQ
+  # [entryPoints.metrics]
+  #   address = ":8082"
+  [entryPoints.influxdb]
+    address = ":8086"   # InfluxDb
+  [entryPoints.emqx-ws]
+    address = ":8083"   # EMQX WS
+  [entryPoints.emqx-wss]
+    address = ":8084"   # EMQX WSS
+  [entryPoints.emqx-admin]
+    address = ":18083"  # EMQX Admin
+
+################################################################
+# Traefik logs configuration
+################################################################
+
+# Traefik logs
+# Enabled by default and log to stdout
+#
+# Optional
+#
+[log]
+
+  # Log level
+  #
+  # Optional
+  # Default: "ERROR"
+  #
+  # level = "DEBUG"
+
+  # Sets the filepath for the traefik log. If not specified, stdout will be used.
+  # Intermediate directories are created if necessary.
+  #
+  # Optional
+  # Default: os.Stdout
+  #
+  # filePath = "log/traefik.log"
+
+  # Format is either "json" or "common".
+  #
+  # Optional
+  # Default: "common"
+  #
+  # format = "json"
+
+################################################################
+# Access logs configuration
+################################################################
+
+# Enable access logs
+# By default it will write to stdout and produce logs in the textual
+# Common Log Format (CLF), extended with additional fields.
+#
+# Optional
+#
+[accessLog]
+
+  # Sets the file path for the access log. If not specified, stdout will be used.
+  # Intermediate directories are created if necessary.
+  #
+  # Optional
+  # Default: os.Stdout
+  #
+  # filePath = "/path/to/log/log.txt"
+
+  # Format is either "json" or "common".
+  #
+  # Optional
+  # Default: "common"
+  #
+  # format = "json"
+
+################################################################
+# API and dashboard configuration
+################################################################
+
+# Enable API and dashboard
+[api]
+
+  # Enable the API in insecure mode
+  #
+  # Optional
+  # Default: false
+  #
+  insecure = true
+
+  # Enabled Dashboard
+  #
+  # Optional
+  # Default: true
+  #
+  dashboard = true
+
+################################################################
+# Ping configuration
+################################################################
+
+# Enable ping
+[ping]
+
+  # Name of the related entry point
+  #
+  # Optional
+  # Default: "traefik"
+  #
+  # entryPoint = "traefik"
+
+################################################################
+# Docker configuration backend
+################################################################
+
+# Enable Docker configuration backend
+[providers.docker]
+
+  # Docker server endpoint. Can be a tcp or a unix socket endpoint.
+  #
+  # Required
+  # Default: "unix:///var/run/docker.sock"
+  #
+  # endpoint = "tcp://10.10.10.10:2375"
+
+  # Default host rule.
+  #
+  # Optional
+  # Default: "Host(`{{ normalize .Name }}`)"
+  #
+  # defaultRule = "Host(`{{ normalize .Name }}.docker.localhost`)"
+
+  # Expose containers by default in traefik
+  #
+  # Optional
+  # Default: true
+  #
+  exposedByDefault = false
+
+  watch = true
+
+[providers.file]
+  directory = "/etc/traefik/conf"
+  watch = true
+
+
+[metrics]
+  [metrics.prometheus]
